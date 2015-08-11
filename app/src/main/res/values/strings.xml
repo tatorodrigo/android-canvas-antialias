@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">AntiAliasIssue</string>
+    <string name="seekbar_tip">Change the seekbar to see the effect</string>
+</resources>

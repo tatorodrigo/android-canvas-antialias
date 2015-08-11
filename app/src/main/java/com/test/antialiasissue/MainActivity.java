@@ -59,22 +59,70 @@ public class MainActivity extends AppCompatActivity {
         mPaint.setStrokeWidth(50);
 
         int i;
-        for(i = 0; i < mTotal; i++) {
+        for (i = 0; i < mTotal; i++) {
             mCanvas.drawPoint(50, 50, mPaint);
         }
 
-        for(i = 0; i < mTotal; i++) {
-            mCanvas.drawCircle(150, 150, 25, mPaint);
+        for (i = 0; i < mTotal; i++) {
+            mCanvas.drawCircle(150 + i, 150, 25, mPaint);
         }
 
-        mCanvas.drawText(String.valueOf(mTotal), 300, 10, mPaint);
+        mCanvas.drawText(String.valueOf(mTotal), 250, 20, mPaint);
+        mCanvas.drawText("ImageView.isHardwareAccelerated: " + mImageView.isHardwareAccelerated(), 250, 50, mPaint);
+        mCanvas.drawText("Canvas.isHardwareAccelerated: " + mCanvas.isHardwareAccelerated(), 250, 80, mPaint);
+
+        //the real issue is because I'm trying to render a width variable line segment
+        drawSegment(mCanvas, mPaint, 50, 250, 150, 250, .1f, mTotal);
+
         mImageView.invalidate();
+    }
+
+    public double distance(double x1, double y1, double x2, double y2) {
+        double dx = x1 - x2;
+        double dy = y1 - y2;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    public void drawSegment(Canvas canvas, Paint paint, float startX, float startY, float endX, float endY, float startWidth, float endWidth) {
+        int drawSteps = (int) (distance(startX, startY, endX, endY) +
+                .5f);
+        float widthDelta = endWidth - startWidth;
+
+        float lastX = Float.NaN;
+        float lastY = Float.NaN;
+
+        float diffX = endX - startX;
+        float diffY = endY - startY;
+
+        for (int i = 0; i < drawSteps; i++) {
+            float t = ((float) i) / drawSteps;
+            paint.setStrokeWidth(startWidth + t * widthDelta);
+
+            float x = startX + t * diffX;
+            float y = startY + t * diffY;
+
+            if (!Float.isNaN(lastX)) {
+                canvas.drawLine(lastX, lastY, x, y, paint);
+            }
+            //canvas.drawPoint(x, y, paint);
+
+            lastX = x;
+            lastY = y;
+        }
+
+        paint.setStrokeWidth(endWidth);
+        if (drawSteps > 0) {
+            canvas.drawLine(lastX, lastY, endX, endY, paint);
+        } else {
+            canvas.drawLine(startX, startY, endX, endY, paint);
+        }
     }
 
     private void initDrawingConfig() {
         mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mPaint.setColor(Color.BLUE);
         mPaint.setStrokeCap(Paint.Cap.ROUND);
+        mPaint.setSubpixelText(true);
 
         mBitmap = Bitmap.createBitmap(500, 500, Bitmap.Config.RGB_565);
         mCanvas = new Canvas(mBitmap);
